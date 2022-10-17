@@ -29,8 +29,7 @@ int hexa_value (char c) {
 int main()
 {
     char currentHexaDigit;
-    int currentDecDigit, decNum;
-    int len = 0;
+    int currentDecDigit, decNum = 0;
   
     while (scanf("%c", &currentHexaDigit) != EOF) {
   
@@ -40,5 +39,6 @@ int main()
     }
 
     printf("%d", decNum);
+    printf("%d", '\n');
     return 0;
 }
