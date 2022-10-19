@@ -61,6 +61,12 @@ int timecmp (time time1, time time2) {
     }
 }
 
+void timereset(time* t) {
+    t->hour = 0;
+    t->min = 0;
+    t->sec = 0;
+}
+
 int main(void)
 {
     time workout_begins = {1, 0, 0};
