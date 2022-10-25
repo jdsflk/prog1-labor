@@ -28,7 +28,23 @@ void print_season (enum season s) {
 }
 
 enum season month2season(int num) {
-    if(num == 12 || num < 3) {
+    switch(num) {
+        case 3:
+        case 4:
+        case 5:
+            return SPRING;
+        case 6:
+        case 7:
+        case 8:
+            return SUMMER;
+        case 9: 
+        case 10:
+        case 11:
+            return AUTUMN;
+        return WINTER;
+
+    }
+    /*if(num == 12 || num < 3) {
         return WINTER;
     }
     if(num > 2 && num < 6) {
@@ -37,15 +53,16 @@ enum season month2season(int num) {
     if(num > 5 && num < 9) {
         return SUMMER;
     }
-    return AUTUMN;
+    return AUTUMN;*/
 }
 
 int main()
 {
-    int month;
+    /*int month;
     while(scanf("%d", &month) == 1) {
         print_season(month2season(month));
         printf(" ");
-    }
+    }*/
+    printf("%d", month2season(3));
     return 0;
 }
