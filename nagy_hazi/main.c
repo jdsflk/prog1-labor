@@ -25,6 +25,11 @@ typedef struct {
     char userID[10];
 } user;
 
+typedef struct userListItem {
+    user data;
+    struct userListItem *next;
+} userListItem;
+
 typedef struct {
     user User;
     book Book;
@@ -46,30 +51,68 @@ bookListItem* getBooks(FILE *bfp) {
     return head;
 }
 
-int openFiles(FILE *bfp, FILE *ufp, FILE *rfp) {
-    bfp = fopen("C:\\Users\\Asus\\Documents\\Egyetem\\Progi 1\\nagy_hazi\\cmake-build-debug\\b.txt", "r");
-    ufp = fopen("users.txt", "r");
-    rfp = fopen("rentals.txt", "r");
-    if (bfp == NULL || ufp == NULL || rfp == NULL) {
-        return 1;
+userListItem* getUsers(FILE* ufp) {
+    user currentUser;
+    userListItem* head = NULL;
+    userListItem** tail = &head;
+    char c = fgetc(ufp);
+    int letterIndex = 0;
+    int isName = 1;
+    while(1) {
+        if(feof(ufp)) {
+            currentUser.userID[letterIndex] = '\0';
+            userListItem *temp = (userListItem*)malloc(sizeof(userListItem));
+            temp->data=currentUser;
+            temp->next=NULL;
+            *tail = temp;
+            tail = &(*tail)->next;
+            break;
+        }
+        if(c == '\n') {
+            currentUser.userID[letterIndex] = '\0';
+            userListItem *temp = (userListItem*)malloc(sizeof(userListItem));
+            temp->data=currentUser;
+            temp->next=NULL;
+            *tail = temp;
+            tail = &(*tail)->next;
+            letterIndex = 0;
+            isName = 1;
+            c = fgetc(ufp);
+        }
+        if(c == ',') {
+            currentUser.name[letterIndex] = '\0';
+            letterIndex = 0;
+            isName = 0;
+            c = fgetc(ufp);
+            continue;
+        }
+        if(isName) {
+            currentUser.name[letterIndex] = c;
+        }
+        if(!isName) {
+            currentUser.userID[letterIndex] = c;
+        }
+        letterIndex++;
+        printf("%c",c);
+        c = fgetc(ufp);
     }
-    return 0;
-}
-
-int closeFiles(FILE *bfp, FILE *ufp, FILE *rfp) {
-    if (fclose(bfp) || fclose(rfp) || fclose(ufp)) {
-        return 1;
-    }
-    return 0;
+    return head;
 }
 
 int main() {
     FILE *bookFilePointer = fopen("b.txt", "r");
-    /*if (openFiles(bookFilePointer, userFilePointer, rentalFilePointer) == 1) {
+    if(bookFilePointer == NULL) {
         return 1;
-    }*/
+    }
+    FILE *userFilePointer = fopen("users.txt", "r");
+    if(userFilePointer == NULL) {
+        return 1;
+    }
+
     bookListItem* bookListHead = getBooks(bookFilePointer);
-    if (fclose(bookFilePointer)) {
+    userListItem* userListHead = getUsers(userFilePointer);
+
+    if (fclose(bookFilePointer) || fclose(userFilePointer)) {
         return 2;
     }
     free(bookListHead);
