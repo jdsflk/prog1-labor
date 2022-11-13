@@ -10,6 +10,14 @@ int strCmp(char str1[], char str2[]) {
     return 1;
 }
 
+void toUpperCase(char str[]) {
+    for(int i = 0; str[i] != '\0'; i++) {
+        if (str[i] >= 'a' && str[i] <= 'z'){
+            str[i] = str[i] + 'A' - 'a';
+        }
+    }
+}
+
 int main() {
     FILE *fp1, *fp2;
     char fileName[30], destFileName[30], charName[20];
@@ -23,19 +31,22 @@ int main() {
     fp2 = fopen(destFileName, "w");
 
     char currentLine[100];
-    
-    while(fgets(currentLine, 100, fp1)) {
-        for (int i = 0; i < strlen(currentLine); i++)
-        {
-            if(currentLine[i] == '\n') {
-                currentLine[i] = '\0';
-            }
-        }
+    toUpperCase(charName);
+    strcat(charName, "\n");
 
+    while(fgets(currentLine, 100, fp1)) {
         if (strCmp(currentLine, charName) == 1)
         {
-            fgets(currentLine, 100, fp1);
-            fprintf(fp2,"%s", currentLine);
+            do{
+                fgets(currentLine, 100, fp1);
+                for (int i = 1; i < strlen(currentLine); i++) {
+                    fputc(currentLine[i], fp2);
+                }
+                if(feof(fp1)) {
+                    break;
+                }
+            } while(currentLine[0] == '\t');
+            fputc('\n', fp2);
         }
     }
 
