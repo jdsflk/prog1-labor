@@ -35,18 +35,104 @@ typedef struct {
     book Book;
 } rental;
 
+typedef enum {
+    TITLE,
+    AUTHOR,
+    PUBLISHER,
+    PUBLICATION_DATE,
+    BOOK_ID
+} bookFields;
+
 bookListItem* getBooks(FILE *bfp) {
     book currentBook;
     bookListItem *head;
     bookListItem **tail = &head;
 
-    while (fscanf(bfp, "%s %s %s %d %s", currentBook.title, currentBook.author, currentBook.publisher,
-                  &currentBook.publicationDate, currentBook.bookID) == 5) {
-        bookListItem *temp = (bookListItem*)malloc(sizeof (bookListItem));
-        temp->data= currentBook;
-        temp->next = NULL;
-        *tail =temp;
-        tail= &(*tail)->next;
+    char c = fgetc(bfp);
+    int letterIndex = 0;
+    char yearStr[4] = {0};
+    bookFields bookField = TITLE;
+    while(1) {
+        if(feof(bfp)) {
+            currentBook.bookID[letterIndex] = 0;
+            bookListItem *temp = (bookListItem*) malloc(sizeof (bookListItem));
+            temp->data = currentBook;
+            temp->next = NULL;
+            *tail = temp;
+            tail = &(*tail)->next;
+            break;
+        }
+        if(c == '\n') {
+            bookListItem *temp = (bookListItem *)malloc(sizeof(bookListItem));
+            temp->data=currentBook;
+            temp->next=NULL;
+            *tail = temp;
+            tail = &(*tail)->next;
+            letterIndex = 0;
+            c = fgetc(bfp);
+        }
+        switch (bookField) {
+            case TITLE: {
+                if(c == ',' && letterIndex!=0) {
+                    currentBook.title[letterIndex] = '\0';
+                    bookField = AUTHOR;
+                    letterIndex = 0;
+                    break;
+                }
+                currentBook.title[letterIndex]=c;
+                letterIndex++;
+                break;
+            }
+            case AUTHOR: {
+                if(c == ',' && letterIndex!= 0) {
+                    currentBook.author[letterIndex] = '\0';
+                    bookField = PUBLISHER;
+                    letterIndex = 0;
+                    break;
+                }
+                currentBook.author[letterIndex]=c;
+                letterIndex++;
+                break;
+            }
+            case PUBLISHER: {
+                if(c == ',' && letterIndex!=0) {
+                    currentBook.publisher[letterIndex] = '\0';
+                    bookField = PUBLICATION_DATE;
+                    letterIndex = 0;
+                    break;
+                }
+                currentBook.publisher[letterIndex]=c;
+                letterIndex++;
+                break;
+            }
+            case PUBLICATION_DATE: {
+                if(c == ',' &&letterIndex!=0) {
+                    currentBook.publicationDate=yearStr[0]*1000+yearStr[1]*100+yearStr[2]*10+yearStr[3];
+                    bookField = BOOK_ID;
+                    letterIndex = 0;
+                    break;
+                }
+                yearStr[letterIndex]=c;
+                letterIndex++;
+                break;
+            }
+            case BOOK_ID: {
+                if(c == ',' && letterIndex!=0) {
+                    currentBook.bookID[letterIndex] = '\0';
+                    bookField=TITLE;
+                    letterIndex = 0;
+                    break;
+                }
+                currentBook.bookID[letterIndex]=c;
+                letterIndex++;
+                break;
+            }
+            default: {
+                printf("Unknown book field");
+                break;
+            }
+        }
+        c = fgetc(bfp);
     }
     return head;
 }
@@ -100,7 +186,7 @@ userListItem* getUsers(FILE* ufp) {
 }
 
 int main() {
-    FILE *bookFilePointer = fopen("b.txt", "r");
+    FILE *bookFilePointer = fopen("books.txt", "r");
     if(bookFilePointer == NULL) {
         return 1;
     }
@@ -116,5 +202,6 @@ int main() {
         return 2;
     }
     free(bookListHead);
+    free(userListHead);
     return 0;
 }
