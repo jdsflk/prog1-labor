@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /*
  * RETURN CODES
@@ -34,6 +35,11 @@ typedef struct {
     user User;
     book Book;
 } rental;
+
+typedef struct rentalListItem {
+    rental data;
+    struct rentalListItem* next;
+} rentalListItem;
 
 typedef enum {
     TITLE,
@@ -185,6 +191,76 @@ userListItem* getUsers(FILE* ufp) {
     return head;
 }
 
+rentalListItem* getRentals (FILE* rfp, userListItem* ulh, bookListItem* blh) {
+    rental currentRental;
+    rentalListItem* head = NULL;
+    rentalListItem** tail = &head;
+
+    char c = fgetc(rfp);
+    int letterIndex = 0;
+    char currentID[10];
+
+    while (1) {
+        if(feof(rfp)) {
+            bookListItem * iterator = blh;
+            currentID[letterIndex] = '\0';
+            while(iterator != NULL) {
+                if(!strcmp(currentID, iterator->data.bookID)) {
+                    currentRental.Book = iterator->data;
+                }
+                iterator = iterator->next;
+            }
+
+            rentalListItem* temp = (rentalListItem*) malloc(sizeof(rentalListItem));
+            temp->data = currentRental;
+            temp->next = NULL;
+            *tail = temp;
+            tail = &(*tail)->next;
+
+            break;
+        }
+        if(c == '\n') {
+            bookListItem* iterator = blh;
+            currentID[letterIndex] = '\0';
+            while (iterator != NULL) {
+                if(!strcmp(currentID, iterator->data.bookID)) {
+                    currentRental.Book = iterator->data;
+                    break;
+                }
+                iterator = iterator->next;
+            }
+
+            rentalListItem* temp = (rentalListItem*) malloc(sizeof(rentalListItem));
+            temp->data = currentRental;
+            temp->next = NULL;
+            *tail = temp;
+            tail = &(*tail)->next;
+
+            letterIndex = 0;
+            c = fgetc(rfp);
+            continue;
+        }
+        if(c == ',') {
+            userListItem* iterator = ulh;
+            currentID[letterIndex] = '\0';
+            while(iterator != NULL) {
+                if(!strcmp(currentID, iterator->data.userID)) {
+                    currentRental.User = iterator->data;
+                }
+                iterator = iterator->next;
+            }
+            letterIndex = 0;
+            c = fgetc(rfp);
+            continue;
+        }
+
+        currentID[letterIndex] = c;
+        letterIndex++;
+        c = fgetc(rfp);
+    }
+    return head;
+}
+
 int main() {
     FILE *bookFilePointer = fopen("books.txt", "r");
     if(bookFilePointer == NULL) {
@@ -195,10 +271,16 @@ int main() {
         return 1;
     }
 
+    FILE* rentalFilePointer = fopen("rentals.txt", "r");
+    if(rentalFilePointer == NULL) {
+        return 1;
+    }
+
     bookListItem* bookListHead = getBooks(bookFilePointer);
     userListItem* userListHead = getUsers(userFilePointer);
+    rentalListItem* rentalListHead = getRentals(rentalFilePointer, userListHead, bookListHead);
 
-    if (fclose(bookFilePointer) || fclose(userFilePointer)) {
+    if (fclose(bookFilePointer) || fclose(userFilePointer) || fclose(rentalFilePointer)) {
         return 2;
     }
     free(bookListHead);
